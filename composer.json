@@ -1,0 +1,42 @@
+{
+    "name": "wyrihaximus/metrics-lazy-registry",
+    "description": "\ud83d\udc7b Lazy registry for wyrihaximus/metrics",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Cees-Jan Kiewiet",
+            "email": "ceesjank@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^7.4",
+        "wyrihaximus/metrics": "^1.0"
+    },
+    "require-dev": {
+        "wyrihaximus/test-utilities": "^2.5 || ^3.0"
+    },
+    "config": {
+        "platform": {
+            "php": "7.4.7"
+        },
+        "sort-packages": true
+    },
+    "autoload": {
+        "psr-4": {
+            "WyriHaximus\\Metrics\\LazyRegistry\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "WyriHaximus\\Tests\\Metrics\\LazyRegistry\\": "tests/"
+        }
+    },
+    "scripts": {
+        "post-install-cmd": [
+            "composer normalize"
+        ],
+        "post-update-cmd": [
+            "composer normalize"
+        ]
+    }
+}
