@@ -10,10 +10,10 @@
     ],
     "require": {
         "php": "^7.4",
-        "wyrihaximus/metrics": "^1.0"
+        "wyrihaximus/metrics": "^1.0.2"
     },
     "require-dev": {
-        "wyrihaximus/test-utilities": "^2.5 || ^3.0"
+        "wyrihaximus/test-utilities": "^3.3.2"
     },
     "config": {
         "platform": {
