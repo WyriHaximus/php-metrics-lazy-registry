@@ -8093,16 +8093,16 @@
         },
         {
             "name": "wyrihaximus/test-utilities",
-            "version": "3.3.2",
+            "version": "3.3.3",
             "source": {
                 "type": "git",
                 "url": "https://github.com/WyriHaximus/php-test-utilities.git",
-                "reference": "45349386845a2734148254752ebfb11d05f71821"
+                "reference": "581a0d0416aa42b879cf660d13c4592e95f50cf6"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/WyriHaximus/php-test-utilities/zipball/45349386845a2734148254752ebfb11d05f71821",
-                "reference": "45349386845a2734148254752ebfb11d05f71821",
+                "url": "https://api.github.com/repos/WyriHaximus/php-test-utilities/zipball/581a0d0416aa42b879cf660d13c4592e95f50cf6",
+                "reference": "581a0d0416aa42b879cf660d13c4592e95f50cf6",
                 "shasum": ""
             },
             "require": {
@@ -8116,9 +8116,9 @@
                 "php-coveralls/php-coveralls": "^2.4.2",
                 "php-parallel-lint/php-console-highlighter": "^0.5",
                 "php-parallel-lint/php-parallel-lint": "^1.2.0",
-                "phpspec/prophecy": "^1.12.1",
+                "phpspec/prophecy": "^1.12.2",
                 "phpspec/prophecy-phpunit": "^2.0.1",
-                "phpstan/phpstan": "^0.12.62",
+                "phpstan/phpstan": "^0.12.64",
                 "phpunit/phpunit": "^9.5.0",
                 "psalm/plugin-phpunit": "^0.15.0",
                 "roave/backward-compatibility-check": "^5.0.0",
@@ -8173,7 +8173,7 @@
             "description": "🛠️ Test utilities for api-clients packages",
             "support": {
                 "issues": "https://github.com/WyriHaximus/php-test-utilities/issues",
-                "source": "https://github.com/WyriHaximus/php-test-utilities/tree/3.3.2"
+                "source": "https://github.com/WyriHaximus/php-test-utilities/tree/3.3.3"
             },
             "funding": [
                 {
@@ -8181,7 +8181,7 @@
                     "type": "github"
                 }
             ],
-            "time": "2020-12-15T15:46:39+00:00"
+            "time": "2020-12-22T07:40:54+00:00"
         }
     ],
     "aliases": [],
