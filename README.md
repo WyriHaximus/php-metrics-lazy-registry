@@ -1,4 +1,4 @@
-# Lazy Metrics Metrics
+# Lazy Metrics Registry
 
 ![Continuous Integration](https://github.com/wyrihaximus/php-metrics-lazy-registry/workflows/Continuous%20Integration/badge.svg)
 [![Latest Stable Version](https://poser.pugx.org/wyrihaximus/metrics-lazy-registry/v/stable.png)](https://packagist.org/packages/wyrihaximus/metrics-lazy-registry)
