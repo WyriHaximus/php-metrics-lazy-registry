@@ -9,17 +9,11 @@
         }
     ],
     "require": {
-        "php": "^7.4",
+        "php": "^8 || ^7.4",
         "wyrihaximus/metrics": "^1.0.2"
     },
     "require-dev": {
         "wyrihaximus/test-utilities": "^3.3.2"
-    },
-    "config": {
-        "platform": {
-            "php": "7.4.7"
-        },
-        "sort-packages": true
     },
     "autoload": {
         "psr-4": {
@@ -30,6 +24,18 @@
         "psr-4": {
             "WyriHaximus\\Tests\\Metrics\\LazyRegistry\\": "tests/"
         }
+    },
+    "config": {
+        "allow-plugins": {
+            "dealerdirect/phpcodesniffer-composer-installer": true,
+            "ergebnis/composer-normalize": true,
+            "icanhazstring/composer-unused": true,
+            "infection/extension-installer": true
+        },
+        "platform": {
+            "php": "7.4.7"
+        },
+        "sort-packages": true
     },
     "scripts": {
         "post-install-cmd": [
