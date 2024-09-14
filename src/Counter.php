@@ -10,26 +10,21 @@ use WyriHaximus\Metrics\Label;
 
 use function func_get_args;
 
-use const WyriHaximus\Constants\Numeric\ONE;
-use const WyriHaximus\Constants\Numeric\ZERO;
-
 final class Counter implements CounterInterface
 {
-    private ?CounterInterface $counter = null;
+    private const DEFAULT_COUNT = 0;
 
-    private string $name;
-    private string $description;
+    private CounterInterface|null $counter = null;
+
     /** @var array<Label> */
     private array $labels;
 
-    /** @var array<string|array<mixed>> */
+    /** @var array<array{function: string, args: array<mixed>}> */
     private array $queue = [];
 
-    public function __construct(string $name, string $description, Label ...$labels)
+    public function __construct(private string $name, private string $description, Label ...$labels)
     {
-        $this->name        = $name;
-        $this->description = $description;
-        $this->labels      = $labels;
+        $this->labels = $labels;
     }
 
     public function name(): string
@@ -48,12 +43,10 @@ final class Counter implements CounterInterface
             return $this->counter->count();
         }
 
-        return ZERO;
+        return self::DEFAULT_COUNT;
     }
 
-    /**
-     * @return array<Label>
-     */
+    /** @return array<Label> */
     public function labels(): array
     {
         return $this->labels;
@@ -67,7 +60,7 @@ final class Counter implements CounterInterface
             return;
         }
 
-        $this->queue[] = [__FUNCTION__, func_get_args()];
+        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
     }
 
     public function incrBy(int $incr): void
@@ -78,7 +71,7 @@ final class Counter implements CounterInterface
             return;
         }
 
-        $this->queue[] = [__FUNCTION__, func_get_args()];
+        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
     }
 
     public function incrTo(int $count): void
@@ -89,7 +82,7 @@ final class Counter implements CounterInterface
             return;
         }
 
-        $this->queue[] = [__FUNCTION__, func_get_args()];
+        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
     }
 
     public function register(CounterInterface $counter): void
@@ -102,7 +95,7 @@ final class Counter implements CounterInterface
 
         foreach ($this->queue as $call) {
             /** @psalm-suppress PossiblyInvalidMethodCall */
-            $this->counter->{$call[ZERO]}(...$call[ONE]); /** @phpstan-ignore-line */
+            $this->counter->{$call['function']}(...$call['args']); /** @phpstan-ignore-line */
         }
 
         $this->queue = [];

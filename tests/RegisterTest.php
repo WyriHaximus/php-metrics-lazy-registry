@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace WyriHaximus\Tests\Metrics\LazyRegistry;
 
 use InvalidArgumentException;
+use Mockery;
 use WyriHaximus\Metrics\Counter as CounterInterface;
 use WyriHaximus\Metrics\Gauge as GaugeInterface;
 use WyriHaximus\Metrics\Histogram as HistogramInterface;
@@ -38,16 +39,14 @@ final class RegisterTest extends TestCase
     {
         self::expectException(InvalidArgumentException::class);
 
-        $mock = $this->prophesize($mock)->reveal();
+        $mock = Mockery::mock($mock);
 
         $object->register($mock); /** @phpstan-ignore-line */
         $object->register($mock); /** @phpstan-ignore-line */
     }
 
-    /**
-     * @return iterable<array<object|class-string>>
-     */
-    public function provideObjectAndMockPairs(): iterable
+    /** @return iterable<array<object|class-string>> */
+    public static function provideObjectAndMockPairs(): iterable
     {
         $name        = 'name';
         $description = 'description';
