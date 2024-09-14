@@ -13,29 +13,23 @@ use WyriHaximus\Metrics\Label;
 use function array_map;
 use function func_get_args;
 
-use const WyriHaximus\Constants\Numeric\ONE;
-use const WyriHaximus\Constants\Numeric\ZERO;
-
 final class Histogram implements HistogramInterface
 {
-    private ?HistogramInterface $histogram = null;
+    private const DEFAULT_COUNT                = 0;
+    private HistogramInterface|null $histogram = null;
 
-    private string $name;
-    private string $description;
     /** @var array<Bucket> */
     private array $buckets;
     /** @var array<Label> */
     private array $labels;
 
-    /** @var array<string|array<mixed>> */
+    /** @var array<array{function: string, args: array<mixed>}> */
     private array $queue = [];
 
-    public function __construct(string $name, string $description, Buckets $buckets, Label ...$labels)
+    public function __construct(private string $name, private string $description, Buckets $buckets, Label ...$labels)
     {
-        $this->name        = $name;
-        $this->description = $description;
-        $this->buckets     = array_map(static fn (float $quantile) => new Bucket((string) $quantile), $buckets->buckets());
-        $this->labels      = $labels;
+        $this->buckets = array_map(static fn (float $quantile) => new Bucket((string) $quantile), $buckets->buckets());
+        $this->labels  = $labels;
     }
 
     public function name(): string
@@ -48,13 +42,11 @@ final class Histogram implements HistogramInterface
         return $this->description;
     }
 
-    /**
-     * @return iterable<Bucket>
-     */
+    /** @return iterable<Bucket> */
     public function buckets(): iterable
     {
         yield from $this->buckets;
-        yield '+Inf' => Bucket::createWithCount('+Inf', ZERO);
+        yield '+Inf' => Bucket::createWithCount('+Inf', self::DEFAULT_COUNT);
     }
 
     public function summary(): float
@@ -63,7 +55,7 @@ final class Histogram implements HistogramInterface
             return $this->histogram->summary();
         }
 
-        return ZERO;
+        return self::DEFAULT_COUNT;
     }
 
     public function count(): int
@@ -72,12 +64,10 @@ final class Histogram implements HistogramInterface
             return $this->histogram->count();
         }
 
-        return ZERO;
+        return self::DEFAULT_COUNT;
     }
 
-    /**
-     * @return array<Label>
-     */
+    /** @return array<Label> */
     public function labels(): array
     {
         return $this->labels;
@@ -91,7 +81,7 @@ final class Histogram implements HistogramInterface
             return;
         }
 
-        $this->queue[] = [__FUNCTION__, func_get_args()];
+        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
     }
 
     public function register(HistogramInterface $histogram): void
@@ -104,7 +94,7 @@ final class Histogram implements HistogramInterface
 
         foreach ($this->queue as $call) {
             /** @psalm-suppress PossiblyInvalidMethodCall */
-            $this->histogram->{$call[ZERO]}(...$call[ONE]); /** @phpstan-ignore-line */
+            $this->histogram->{$call['function']}(...$call['args']); /** @phpstan-ignore-line */
         }
 
         $this->queue = [];

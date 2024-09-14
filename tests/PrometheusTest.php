@@ -21,9 +21,7 @@ use const DIRECTORY_SEPARATOR;
 
 final class PrometheusTest extends TestCase
 {
-    /**
-     * @test
-     */
+    /** @test */
     public function print(): void
     {
         $registry = new LazyRegistry();

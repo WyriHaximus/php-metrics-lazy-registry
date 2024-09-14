@@ -14,26 +14,18 @@ use WyriHaximus\Metrics\Summary as SummaryInterface;
 use function array_map;
 use function func_get_args;
 
-use const WyriHaximus\Constants\Numeric\ONE;
-use const WyriHaximus\Constants\Numeric\TWO;
-use const WyriHaximus\Constants\Numeric\ZERO;
-
 final class Summaries implements SummariesInterface
 {
-    private ?SummariesInterface $summaries = null;
+    private SummariesInterface|null $summaries = null;
 
-    private string $name;
-    private string $description;
     /** @var array<string> */
     private array $requiredLabelNames;
 
-    /** @var array<string|array<mixed>> */
+    /** @var array<array{function: string, args: array<mixed>, ghost: Summary}> */
     private array $queue = [];
 
-    public function __construct(string $name, string $description, Name ...$requiredLabelNames)
+    public function __construct(private string $name, private string $description, Name ...$requiredLabelNames)
     {
-        $this->name               = $name;
-        $this->description        = $description;
         $this->requiredLabelNames = array_map(static fn (Name $name) => $name->name(), $requiredLabelNames);
     }
 
@@ -56,14 +48,12 @@ final class Summaries implements SummariesInterface
         }
 
         $ghost         = new Summary($this->name, $this->description, ...$labels);
-        $this->queue[] = [__FUNCTION__, func_get_args(), $ghost];
+        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
 
         return $ghost;
     }
 
-    /**
-     * @return iterable<SummaryInterface>
-     */
+    /** @return iterable<SummaryInterface> */
     public function summaries(): iterable
     {
         if ($this->summaries instanceof SummariesInterface) {
@@ -82,8 +72,8 @@ final class Summaries implements SummariesInterface
         $this->summaries = $summaries;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $call[TWO]->register($this->summaries->{$call[ZERO]}(...$call[ONE])); /** @phpstan-ignore-line */
+            /** @psalm-suppress MixedArgument */
+            $call['ghost']->register($this->summaries->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
         }
 
         $this->queue = [];

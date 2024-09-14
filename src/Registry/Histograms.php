@@ -16,28 +16,18 @@ use WyriHaximus\Metrics\Registry\Histograms as HistogramsInterface;
 use function array_map;
 use function func_get_args;
 
-use const WyriHaximus\Constants\Numeric\ONE;
-use const WyriHaximus\Constants\Numeric\TWO;
-use const WyriHaximus\Constants\Numeric\ZERO;
-
 final class Histograms implements HistogramsInterface
 {
-    private ?HistogramsInterface $histograms = null;
+    private HistogramsInterface|null $histograms = null;
 
-    private string $name;
-    private string $description;
-    private Buckets $buckets;
     /** @var array<string> */
     private array $requiredLabelNames;
 
-    /** @var array<string|array<mixed>> */
+    /** @var array<array{function: string, args: array<mixed>, ghost: Histogram}> */
     private array $queue = [];
 
-    public function __construct(string $name, string $description, Buckets $buckets, Name ...$requiredLabelNames)
+    public function __construct(private string $name, private string $description, private Buckets $buckets, Name ...$requiredLabelNames)
     {
-        $this->name               = $name;
-        $this->description        = $description;
-        $this->buckets            = $buckets;
         $this->requiredLabelNames = array_map(static fn (Name $name) => $name->name(), $requiredLabelNames);
     }
 
@@ -60,14 +50,12 @@ final class Histograms implements HistogramsInterface
         }
 
         $ghost         = new Histogram($this->name, $this->description, $this->buckets, ...$labels);
-        $this->queue[] = [__FUNCTION__, func_get_args(), $ghost];
+        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
 
         return $ghost;
     }
 
-    /**
-     * @return iterable<HistogramInterface>
-     */
+    /** @return iterable<HistogramInterface> */
     public function histograms(): iterable
     {
         if ($this->histograms instanceof HistogramsInterface) {
@@ -86,8 +74,8 @@ final class Histograms implements HistogramsInterface
         $this->histograms = $histograms;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $call[TWO]->register($this->histograms->{$call[ZERO]}(...$call[ONE])); /** @phpstan-ignore-line */
+            /** @psalm-suppress MixedArgument */
+            $call['ghost']->register($this->histograms->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
         }
 
         $this->queue = [];

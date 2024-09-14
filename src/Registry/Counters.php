@@ -14,25 +14,17 @@ use WyriHaximus\Metrics\Registry\Counters as CountersInterface;
 use function array_map;
 use function func_get_args;
 
-use const WyriHaximus\Constants\Numeric\ONE;
-use const WyriHaximus\Constants\Numeric\TWO;
-use const WyriHaximus\Constants\Numeric\ZERO;
-
 final class Counters implements CountersInterface
 {
-    private ?CountersInterface $counters = null;
-    private string $name;
-    private string $description;
+    private CountersInterface|null $counters = null;
     /** @var array<string> */
     private array $requiredLabelNames;
 
-    /** @var array<string|array<mixed>> */
+    /** @var array<array{function: string, args: array<mixed>, ghost: Counter}> */
     private array $queue = [];
 
-    public function __construct(string $name, string $description, Name ...$requiredLabelNames)
+    public function __construct(private string $name, private string $description, Name ...$requiredLabelNames)
     {
-        $this->name               = $name;
-        $this->description        = $description;
         $this->requiredLabelNames = array_map(static fn (Name $name) => $name->name(), $requiredLabelNames);
     }
 
@@ -55,14 +47,12 @@ final class Counters implements CountersInterface
         }
 
         $ghost         = new Counter($this->name, $this->description, ...$labels);
-        $this->queue[] = [__FUNCTION__, func_get_args(), $ghost];
+        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
 
         return $ghost;
     }
 
-    /**
-     * @return iterable<CounterInterface>
-     */
+    /** @return iterable<CounterInterface> */
     public function counters(): iterable
     {
         if ($this->counters instanceof CountersInterface) {
@@ -81,8 +71,8 @@ final class Counters implements CountersInterface
         $this->counters = $counters;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $call[TWO]->register($this->counters->{$call[ZERO]}(...$call[ONE])); /** @phpstan-ignore-line */
+            /** @psalm-suppress MixedArgument */
+            $call['ghost']->register($this->counters->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
         }
 
         $this->queue = [];
