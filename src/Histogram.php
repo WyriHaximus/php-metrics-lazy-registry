@@ -15,20 +15,20 @@ use function func_get_args;
 
 final class Histogram implements HistogramInterface
 {
-    private const DEFAULT_COUNT                = 0;
+    private const int DEFAULT_COUNT            = 0;
     private HistogramInterface|null $histogram = null;
 
     /** @var array<Bucket> */
-    private array $buckets;
+    private readonly array $buckets;
     /** @var array<Label> */
-    private array $labels;
+    private readonly array $labels;
 
     /** @var array<array{function: string, args: array<mixed>}> */
     private array $queue = [];
 
-    public function __construct(private string $name, private string $description, Buckets $buckets, Label ...$labels)
+    public function __construct(private readonly string $name, private readonly string $description, Buckets $buckets, Label ...$labels)
     {
-        $this->buckets = array_map(static fn (float $quantile) => new Bucket((string) $quantile), $buckets->buckets());
+        $this->buckets = array_map(static fn (float $quantile): Bucket => new Bucket((string) $quantile), $buckets->buckets());
         $this->labels  = $labels;
     }
 
