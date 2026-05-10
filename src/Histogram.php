@@ -11,8 +11,8 @@ use WyriHaximus\Metrics\Histogram\Buckets;
 use WyriHaximus\Metrics\Label;
 
 use function array_map;
-use function func_get_args;
 
+/** @api */
 final class Histogram implements HistogramInterface
 {
     private const int DEFAULT_COUNT            = 0;
@@ -23,7 +23,7 @@ final class Histogram implements HistogramInterface
     /** @var array<Label> */
     private readonly array $labels;
 
-    /** @var array<array{function: string, args: array<mixed>}> */
+    /** @var array<(callable(HistogramInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, Buckets $buckets, Label ...$labels)
@@ -81,7 +81,7 @@ final class Histogram implements HistogramInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (HistogramInterface $histogram) => $histogram->observe($value);
     }
 
     public function register(HistogramInterface $histogram): void
@@ -93,8 +93,7 @@ final class Histogram implements HistogramInterface
         $this->histogram = $histogram;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $this->histogram->{$call['function']}(...$call['args']); /** @phpstan-ignore-line */
+            $call($histogram);
         }
 
         $this->queue = [];

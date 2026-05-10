@@ -12,15 +12,15 @@ use WyriHaximus\Metrics\LazyRegistry\Counter;
 use WyriHaximus\Metrics\Registry\Counters as CountersInterface;
 
 use function array_map;
-use function func_get_args;
 
+/** @api */
 final class Counters implements CountersInterface
 {
     private CountersInterface|null $counters = null;
     /** @var array<string> */
     private readonly array $requiredLabelNames;
 
-    /** @var array<array{function: string, args: array<mixed>, ghost: Counter}> */
+    /** @var array<(callable(CountersInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, Name ...$requiredLabelNames)
@@ -47,7 +47,7 @@ final class Counters implements CountersInterface
         }
 
         $ghost         = new Counter($this->name, $this->description, ...$labels);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (CountersInterface $counters) => $ghost->register($counters->counter(...$labels));
 
         return $ghost;
     }
@@ -71,8 +71,7 @@ final class Counters implements CountersInterface
         $this->counters = $counters;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress MixedArgument */
-            $call['ghost']->register($this->counters->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
+            $call($this->counters);
         }
 
         $this->queue = [];

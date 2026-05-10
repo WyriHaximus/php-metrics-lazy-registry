@@ -9,8 +9,7 @@ use WyriHaximus\Metrics\Label;
 use WyriHaximus\Metrics\Summary as SummaryInterface;
 use WyriHaximus\Metrics\Summary\Quantile;
 
-use function func_get_args;
-
+/** @api */
 final class Summary implements SummaryInterface
 {
     private SummaryInterface|null $summary = null;
@@ -18,7 +17,7 @@ final class Summary implements SummaryInterface
     /** @var array<Label> */
     private readonly array $labels;
 
-    /** @var array<array{function: string, args: array<mixed>}> */
+    /** @var array<(callable(SummaryInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, Label ...$labels)
@@ -54,7 +53,7 @@ final class Summary implements SummaryInterface
             $this->summary->observe($value);
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (SummaryInterface $summary) => $summary->observe($value);
     }
 
     public function register(SummaryInterface $summary): void
@@ -66,8 +65,7 @@ final class Summary implements SummaryInterface
         $this->summary = $summary;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $this->summary->{$call['function']}(...$call['args']); /** @phpstan-ignore-line */
+            $call($summary);
         }
 
         $this->queue = [];

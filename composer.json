@@ -13,7 +13,7 @@
     "wyrihaximus/metrics": "^2.1 || ^3.0"
   },
   "require-dev": {
-    "wyrihaximus/makefiles": "^0.7.6",
+    "wyrihaximus/makefiles": "^0.10.6",
     "wyrihaximus/test-utilities": "^12.2.0"
   },
   "autoload": {

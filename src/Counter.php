@@ -8,8 +8,7 @@ use InvalidArgumentException;
 use WyriHaximus\Metrics\Counter as CounterInterface;
 use WyriHaximus\Metrics\Label;
 
-use function func_get_args;
-
+/** @api */
 final class Counter implements CounterInterface
 {
     private const int DEFAULT_COUNT = 0;
@@ -19,7 +18,7 @@ final class Counter implements CounterInterface
     /** @var array<Label> */
     private readonly array $labels;
 
-    /** @var array<array{function: string, args: array<mixed>}> */
+    /** @var array<(callable(CounterInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, Label ...$labels)
@@ -60,7 +59,7 @@ final class Counter implements CounterInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (CounterInterface $counter) => $counter->incr();
     }
 
     public function incrBy(int $incr): void
@@ -71,7 +70,7 @@ final class Counter implements CounterInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (CounterInterface $counter) => $counter->incrBy($incr);
     }
 
     public function incrTo(int $count): void
@@ -82,7 +81,7 @@ final class Counter implements CounterInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (CounterInterface $counter) => $counter->incrTo($count);
     }
 
     public function register(CounterInterface $counter): void
@@ -94,8 +93,7 @@ final class Counter implements CounterInterface
         $this->counter = $counter;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $this->counter->{$call['function']}(...$call['args']); /** @phpstan-ignore-line */
+            $call($counter);
         }
 
         $this->queue = [];

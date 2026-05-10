@@ -8,8 +8,7 @@ use InvalidArgumentException;
 use WyriHaximus\Metrics\Gauge as GaugeInterface;
 use WyriHaximus\Metrics\Label;
 
-use function func_get_args;
-
+/** @api */
 final class Gauge implements GaugeInterface
 {
     private const int DEFAULT_COUNT    = 0;
@@ -18,7 +17,7 @@ final class Gauge implements GaugeInterface
     /** @var array<Label> */
     private readonly array $labels;
 
-    /** @var array<array{function: string, args: array<mixed>}> */
+    /** @var array<(callable(GaugeInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, Label ...$labels)
@@ -59,7 +58,7 @@ final class Gauge implements GaugeInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (GaugeInterface $gauge) => $gauge->incr();
     }
 
     public function incrBy(int $incr): void
@@ -70,7 +69,7 @@ final class Gauge implements GaugeInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (GaugeInterface $gauge) => $gauge->incrBy($incr);
     }
 
     public function set(int $count): void
@@ -81,7 +80,7 @@ final class Gauge implements GaugeInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (GaugeInterface $gauge) => $gauge->set($count);
     }
 
     public function dcrBy(int $dcr): void
@@ -92,7 +91,7 @@ final class Gauge implements GaugeInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (GaugeInterface $gauge) => $gauge->dcrBy($dcr);
     }
 
     public function dcr(): void
@@ -103,7 +102,7 @@ final class Gauge implements GaugeInterface
             return;
         }
 
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args()];
+        $this->queue[] = static fn (GaugeInterface $gauge) => $gauge->dcr();
     }
 
     public function register(GaugeInterface $gauge): void
@@ -115,8 +114,7 @@ final class Gauge implements GaugeInterface
         $this->gauge = $gauge;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress PossiblyInvalidMethodCall */
-            $this->gauge->{$call['function']}(...$call['args']); /** @phpstan-ignore-line */
+            $call($gauge);
         }
 
         $this->queue = [];
