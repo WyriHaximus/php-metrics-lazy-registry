@@ -19,14 +19,14 @@ final class Gauges implements GaugesInterface
     private GaugesInterface|null $gauges = null;
 
     /** @var array<string> */
-    private array $requiredLabelNames;
+    private readonly array $requiredLabelNames;
 
     /** @var array<array{function: string, args: array<mixed>, ghost: Gauge}> */
     private array $queue = [];
 
-    public function __construct(private string $name, private string $description, Name ...$requiredLabelNames)
+    public function __construct(private readonly string $name, private readonly string $description, Name ...$requiredLabelNames)
     {
-        $this->requiredLabelNames = array_map(static fn (Name $name) => $name->name(), $requiredLabelNames);
+        $this->requiredLabelNames = array_map(static fn (Name $name): string => $name->name(), $requiredLabelNames);
     }
 
     public function name(): string

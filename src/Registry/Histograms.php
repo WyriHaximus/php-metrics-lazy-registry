@@ -21,14 +21,14 @@ final class Histograms implements HistogramsInterface
     private HistogramsInterface|null $histograms = null;
 
     /** @var array<string> */
-    private array $requiredLabelNames;
+    private readonly array $requiredLabelNames;
 
     /** @var array<array{function: string, args: array<mixed>, ghost: Histogram}> */
     private array $queue = [];
 
-    public function __construct(private string $name, private string $description, private Buckets $buckets, Name ...$requiredLabelNames)
+    public function __construct(private readonly string $name, private readonly string $description, private readonly Buckets $buckets, Name ...$requiredLabelNames)
     {
-        $this->requiredLabelNames = array_map(static fn (Name $name) => $name->name(), $requiredLabelNames);
+        $this->requiredLabelNames = array_map(static fn (Name $name): string => $name->name(), $requiredLabelNames);
     }
 
     public function name(): string

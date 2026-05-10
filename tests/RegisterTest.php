@@ -6,6 +6,8 @@ namespace WyriHaximus\Tests\Metrics\LazyRegistry;
 
 use InvalidArgumentException;
 use Mockery;
+use PHPUnit\Framework\Attributes\DataProvider;
+use PHPUnit\Framework\Attributes\Test;
 use WyriHaximus\Metrics\Counter as CounterInterface;
 use WyriHaximus\Metrics\Gauge as GaugeInterface;
 use WyriHaximus\Metrics\Histogram as HistogramInterface;
@@ -29,17 +31,14 @@ use WyriHaximus\TestUtilities\TestCase;
 
 final class RegisterTest extends TestCase
 {
-    /**
-     * @param class-string $mock
-     *
-     * @test
-     * @dataProvider provideObjectAndMockPairs
-     */
-    public function register(object $object, string $mock): void
+    /** @param class-string $classToMock */
+    #[Test]
+    #[DataProvider('provideObjectAndMockPairs')]
+    public function register(object $object, string $classToMock): void
     {
         self::expectException(InvalidArgumentException::class);
 
-        $mock = Mockery::mock($mock);
+        $mock = Mockery::mock($classToMock);
 
         $object->register($mock); /** @phpstan-ignore-line */
         $object->register($mock); /** @phpstan-ignore-line */

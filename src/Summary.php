@@ -16,12 +16,12 @@ final class Summary implements SummaryInterface
     private SummaryInterface|null $summary = null;
 
     /** @var array<Label> */
-    private array $labels;
+    private readonly array $labels;
 
     /** @var array<array{function: string, args: array<mixed>}> */
     private array $queue = [];
 
-    public function __construct(private string $name, private string $description, Label ...$labels)
+    public function __construct(private readonly string $name, private readonly string $description, Label ...$labels)
     {
         $this->labels = $labels;
     }

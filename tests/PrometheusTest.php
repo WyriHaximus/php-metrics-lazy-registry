@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace WyriHaximus\Tests\Metrics\LazyRegistry;
 
+use PHPUnit\Framework\Attributes\Test;
 use WyriHaximus\Metrics\Configuration;
 use WyriHaximus\Metrics\Factory;
 use WyriHaximus\Metrics\InMemory\Registry as InMemoryRegistry;
@@ -21,7 +22,7 @@ use const DIRECTORY_SEPARATOR;
 
 final class PrometheusTest extends TestCase
 {
-    /** @test */
+    #[Test]
     public function print(): void
     {
         $registry = new LazyRegistry();

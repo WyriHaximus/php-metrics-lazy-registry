@@ -12,16 +12,16 @@ use function func_get_args;
 
 final class Gauge implements GaugeInterface
 {
-    private const DEFAULT_COUNT        = 0;
+    private const int DEFAULT_COUNT    = 0;
     private GaugeInterface|null $gauge = null;
 
     /** @var array<Label> */
-    private array $labels;
+    private readonly array $labels;
 
     /** @var array<array{function: string, args: array<mixed>}> */
     private array $queue = [];
 
-    public function __construct(private string $name, private string $description, Label ...$labels)
+    public function __construct(private readonly string $name, private readonly string $description, Label ...$labels)
     {
         $this->labels = $labels;
     }
