@@ -19,13 +19,12 @@ use WyriHaximus\Metrics\Registry\Histograms as HistogramsInterface;
 use WyriHaximus\Metrics\Registry\Summaries as SummariesInterface;
 use WyriHaximus\Metrics\Summary\Quantiles;
 
-use function func_get_args;
-
+/** @api */
 final class Registry implements RegistryInterface
 {
     private RegistryInterface|null $registry = null;
 
-    /** @var array<array{function: string, args: array<mixed>, ghost: Counters|Gauges|Histograms|Summaries}> */
+    /** @var array<(callable(RegistryInterface): void)> */
     private array $queue = [];
 
     public function counter(string $name, string $description, Name ...$requiredLabelNames): CountersInterface
@@ -35,7 +34,7 @@ final class Registry implements RegistryInterface
         }
 
         $ghost         = new Counters($name, $description, ...$requiredLabelNames);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (RegistryInterface $registry) => $ghost->register($registry->counter($name, $description, ...$requiredLabelNames));
 
         return $ghost;
     }
@@ -47,7 +46,7 @@ final class Registry implements RegistryInterface
         }
 
         $ghost         = new Gauges($name, $description, ...$requiredLabelNames);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (RegistryInterface $registry) => $ghost->register($registry->gauge($name, $description, ...$requiredLabelNames));
 
         return $ghost;
     }
@@ -59,7 +58,7 @@ final class Registry implements RegistryInterface
         }
 
         $ghost         = new Histograms($name, $description, $buckets, ...$requiredLabelNames);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (RegistryInterface $registry) => $ghost->register($registry->histogram($name, $description, $buckets, ...$requiredLabelNames));
 
         return $ghost;
     }
@@ -71,7 +70,7 @@ final class Registry implements RegistryInterface
         }
 
         $ghost         = new Summaries($name, $description, ...$requiredLabelNames);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (RegistryInterface $registry) => $ghost->register($registry->summary($name, $description, $quantiles, ...$requiredLabelNames));
 
         return $ghost;
     }
@@ -94,8 +93,7 @@ final class Registry implements RegistryInterface
         $this->registry = $registry;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress MixedArgument */
-            $call['ghost']->register($this->registry->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
+            $call($registry);
         }
 
         $this->queue = [];

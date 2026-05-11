@@ -12,8 +12,8 @@ use WyriHaximus\Metrics\Registry\Summaries as SummariesInterface;
 use WyriHaximus\Metrics\Summary as SummaryInterface;
 
 use function array_map;
-use function func_get_args;
 
+/** @api */
 final class Summaries implements SummariesInterface
 {
     private SummariesInterface|null $summaries = null;
@@ -21,7 +21,7 @@ final class Summaries implements SummariesInterface
     /** @var array<string> */
     private readonly array $requiredLabelNames;
 
-    /** @var array<array{function: string, args: array<mixed>, ghost: Summary}> */
+    /** @var array<(callable(SummariesInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, Name ...$requiredLabelNames)
@@ -48,7 +48,7 @@ final class Summaries implements SummariesInterface
         }
 
         $ghost         = new Summary($this->name, $this->description, ...$labels);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (SummariesInterface $summaries) => $ghost->register($summaries->summary(...$labels));
 
         return $ghost;
     }
@@ -72,8 +72,7 @@ final class Summaries implements SummariesInterface
         $this->summaries = $summaries;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress MixedArgument */
-            $call['ghost']->register($this->summaries->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
+            $call($summaries);
         }
 
         $this->queue = [];

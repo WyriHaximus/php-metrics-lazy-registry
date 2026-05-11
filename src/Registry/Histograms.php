@@ -14,8 +14,8 @@ use WyriHaximus\Metrics\Registry\Gauges as GaugesInterface;
 use WyriHaximus\Metrics\Registry\Histograms as HistogramsInterface;
 
 use function array_map;
-use function func_get_args;
 
+/** @api */
 final class Histograms implements HistogramsInterface
 {
     private HistogramsInterface|null $histograms = null;
@@ -23,7 +23,7 @@ final class Histograms implements HistogramsInterface
     /** @var array<string> */
     private readonly array $requiredLabelNames;
 
-    /** @var array<array{function: string, args: array<mixed>, ghost: Histogram}> */
+    /** @var array<(callable(HistogramsInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, private readonly Buckets $buckets, Name ...$requiredLabelNames)
@@ -50,7 +50,7 @@ final class Histograms implements HistogramsInterface
         }
 
         $ghost         = new Histogram($this->name, $this->description, $this->buckets, ...$labels);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (HistogramsInterface $histograms) => $ghost->register($histograms->histogram(...$labels));
 
         return $ghost;
     }
@@ -74,8 +74,7 @@ final class Histograms implements HistogramsInterface
         $this->histograms = $histograms;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress MixedArgument */
-            $call['ghost']->register($this->histograms->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
+            $call($histograms);
         }
 
         $this->queue = [];

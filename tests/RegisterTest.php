@@ -31,20 +31,21 @@ use WyriHaximus\TestUtilities\TestCase;
 
 final class RegisterTest extends TestCase
 {
-    /** @param class-string $classToMock */
+    /** @param class-string<CounterInterface|GaugeInterface|HistogramInterface|RegistryInterface|SummaryInterface|CountersInterface|GaugesInterface|HistogramsInterface|SummariesInterface> $classToMock */
     #[Test]
     #[DataProvider('provideObjectAndMockPairs')]
-    public function register(object $object, string $classToMock): void
+    public function register(Counter|Gauge|Histogram|Registry|Summary|Counters|Gauges|Histograms|Summaries $object, string $classToMock): void
     {
         self::expectException(InvalidArgumentException::class);
 
+        /** @var (CounterInterface&Mockery\MockInterface)|(GaugeInterface&Mockery\MockInterface)|(HistogramInterface&Mockery\MockInterface)|(RegistryInterface&Mockery\MockInterface)|(SummaryInterface&Mockery\MockInterface)|(CountersInterface&Mockery\MockInterface)|(GaugesInterface&Mockery\MockInterface)|(HistogramsInterface&Mockery\MockInterface)|(SummariesInterface&Mockery\MockInterface) $mock */
         $mock = Mockery::mock($classToMock);
 
-        $object->register($mock); /** @phpstan-ignore-line */
-        $object->register($mock); /** @phpstan-ignore-line */
+        $object->register($mock);
+        $object->register($mock);
     }
 
-    /** @return iterable<array<object|class-string>> */
+    /** @return iterable<array{Counter|Gauge|Histogram|Registry|Summary|Counters|Gauges|Histograms|Summaries, class-string<CounterInterface|GaugeInterface|HistogramInterface|RegistryInterface|SummaryInterface|CountersInterface|GaugesInterface|HistogramsInterface|SummariesInterface>}> */
     public static function provideObjectAndMockPairs(): iterable
     {
         $name        = 'name';

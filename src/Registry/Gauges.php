@@ -12,8 +12,8 @@ use WyriHaximus\Metrics\LazyRegistry\Gauge;
 use WyriHaximus\Metrics\Registry\Gauges as GaugesInterface;
 
 use function array_map;
-use function func_get_args;
 
+/** @api */
 final class Gauges implements GaugesInterface
 {
     private GaugesInterface|null $gauges = null;
@@ -21,7 +21,7 @@ final class Gauges implements GaugesInterface
     /** @var array<string> */
     private readonly array $requiredLabelNames;
 
-    /** @var array<array{function: string, args: array<mixed>, ghost: Gauge}> */
+    /** @var array<(callable(GaugesInterface): void)> */
     private array $queue = [];
 
     public function __construct(private readonly string $name, private readonly string $description, Name ...$requiredLabelNames)
@@ -48,7 +48,7 @@ final class Gauges implements GaugesInterface
         }
 
         $ghost         = new Gauge($this->name, $this->description, ...$labels);
-        $this->queue[] = ['function' => __FUNCTION__, 'args' => func_get_args(), 'ghost' => $ghost];
+        $this->queue[] = static fn (GaugesInterface $gauges) => $ghost->register($gauges->gauge(...$labels));
 
         return $ghost;
     }
@@ -72,8 +72,7 @@ final class Gauges implements GaugesInterface
         $this->gauges = $gauges;
 
         foreach ($this->queue as $call) {
-            /** @psalm-suppress MixedArgument */
-            $call['ghost']->register($this->gauges->{$call['function']}(...$call['args'])); /** @phpstan-ignore-line */
+            $call($gauges);
         }
 
         $this->queue = [];
