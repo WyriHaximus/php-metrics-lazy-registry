@@ -15,8 +15,8 @@ use WyriHaximus\Metrics\Printer\Prometheus;
 use WyriHaximus\TestUtilities\TestCase;
 
 use function array_reverse;
+use function file_get_contents;
 use function range;
-use function Safe\file_get_contents;
 
 use const DIRECTORY_SEPARATOR;
 
